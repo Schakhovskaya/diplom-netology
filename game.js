@@ -320,39 +320,8 @@ class Player extends Actor {
 
 
 
-let levels = [
-  [
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "  o                    ",
-    "  x           o     o  ",
-    "  x @   o   xxxx |xxx  ",
-    "  xxxx xxx xx  xxxxxx  "
-  ],
-  [
-    "          ooo          ",
-    "          xxx          ",
-    "          o xxx        ",
-    "         xxx           ",
-    "  =   xxx  o           ",
-    "  x      xxx       o   ",
-    "  x @   o         xxx  ",
-    "  xxxx xxx xx | xxxxx  "
-  ],
-  [
-    "          ooo          ",
-    "     o    xxx   o      ",
-    "     xxx       xxx     ",
-    "         xxx       v   ",
-    "  =        o           ",
-    "  x      xxx       o   ",
-    "  x @   o         xxx  ",
-    "  xxxx xxx xx | xxxxx  "
-  ]
+let levels = loadLevels();
 
-];
 const actorDict = {
   '@': Player,
   '=': HorizontalFireball,
@@ -360,6 +329,6 @@ const actorDict = {
   '|': VerticalFireball,
   'o': Coin
 };
-const parser = new LevelParser(actorDict);
+const parser = new LevelParser();
 runGame(levels, parser, DOMDisplay)
 .then(() => alert('Вы выиграли приз!'));
