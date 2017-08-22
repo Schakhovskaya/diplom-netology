@@ -318,10 +318,6 @@ class Player extends Actor {
   }
 }
 
-
-
-let levels = loadLevels();
-
 const actorDict = {
   '@': Player,
   '=': HorizontalFireball,
@@ -329,6 +325,9 @@ const actorDict = {
   '|': VerticalFireball,
   'o': Coin
 };
-const parser = new LevelParser();
-runGame(levels, parser, DOMDisplay)
-.then(() => alert('Вы выиграли приз!'));
+const parser = new LevelParser(actorDict);
+
+loadLevels()
+.then(JSON.parse)
+.then(levels => runGame(levels, parser, DOMDisplay)
+.then(() => alert('Ура, победа! (ваш приз диплом :3)')));
