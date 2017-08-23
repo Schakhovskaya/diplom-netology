@@ -9,7 +9,7 @@ class Vector {
 
   plus(newVector) {
     if (!(newVector instanceof Vector)) {
-      throw new SyntaxError("Можно прибавлять к вектору только вектор типа Vector");
+      throw new Error("Можно прибавлять к вектору только вектор типа Vector");
     }
     return new Vector(this.x + newVector.x, this.y + newVector.y);
   }
@@ -23,7 +23,7 @@ class Vector {
 class Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
     if (!((pos instanceof Vector) && (size instanceof Vector) && (speed instanceof Vector))) {
-      throw new SyntaxError("Все параменты должны быть Vector");
+      throw new Error("Все параменты должны быть Vector");
     }
 
     this.pos = pos;
@@ -53,10 +53,14 @@ class Actor {
 
   isIntersect(otherObject) {
     if (!(otherObject instanceof Actor)) {
-      throw new SyntaxError("Необходим объект типа Actor");
+      throw new Error("Необходим объект типа Actor");
     }
 
-    return !((otherObject.left >= this.right || otherObject.top >= this.bottom || otherObject.right <= this.left || otherObject.bottom <= this.top) || (otherObject === this));
+    if (otherObject === this) {
+      return false;
+    }
+
+    return otherObject.left < this.right && otherObject.top < this.bottom && otherObject.right > this.left && otherObject.bottom > this.top;
   }
 
   act() {
@@ -69,7 +73,7 @@ class Level {
     this.grid = grid.slice();
     this.actors = actors.slice();
 
-    this.player = this.actors.find((item) => item.type === 'player');
+    this.player = this.actors.find(item => item.type === 'player');
     this.height = grid.length;
     this.width = Math.max(0, ...this.grid.map(line => line.length));
     this.status = null;
@@ -82,7 +86,7 @@ class Level {
 
   actorAt(actor) {
     if (!(actor instanceof Actor)) {
-      throw new SyntaxError("Необходим объект типа Actor");
+      throw new Error("Необходим объект типа Actor");
     }
 
     return this.actors.find((item) => item.isIntersect(actor));
@@ -90,12 +94,12 @@ class Level {
 
   obstacleAt(position, size) {
     if (!(position instanceof Vector) || !(size instanceof Vector)) {
-      throw new SyntaxError("Необходим объект типа Vector");
+      throw new Error("Необходим объект типа Vector");
     }
 
     let xStart = Math.floor(position.x);
     let xEnd = Math.ceil(position.x + size.x);
-    let yStart = Math.ceil(position.y);
+    let yStart = Math.floor(position.y);
     let yEnd = Math.ceil(position.y + size.y);
 
     if (xStart < 0 || xEnd > this.width || yStart < 0) {
@@ -117,11 +121,11 @@ class Level {
   }
 
   removeActor(actor) {
-    this.actors = this.actors.filter((obj) => obj !== actor);
+    this.actors = this.actors.filter(obj => obj !== actor);
   }
 
   noMoreActors(type) {
-    return !this.actors.find((item) => item.type === type);
+    return !this.actors.some(item => item.type === type);
   }
 
   playerTouched(objType, actor) {
@@ -145,8 +149,8 @@ class Level {
 }
 
 class LevelParser {
-  constructor(dictionary = []) {
-    this.dictionary = dictionary;
+  constructor(dictionary = {}) {
+    this.dictionary = Object.assign({}, dictionary);
   }
 
   actorFromSymbol(symbol) {
@@ -159,8 +163,6 @@ class LevelParser {
         return "wall";
       case "!":
         return "lava";
-      default:
-        return undefined;
     }
   }
 
@@ -175,9 +177,9 @@ class LevelParser {
     for (let i = 0; i < plan.length; i++) {
       for (let j = 0; j < plan[i].length; j++) {
         const char = plan[i][j];
+        let func = this.actorFromSymbol(char);
 
-        if (typeof this.dictionary[char] == 'function') {
-          let func = this.actorFromSymbol(char);
+        if (typeof func === 'function') {
           let actor = new func(new Vector(j, i));
 
           if (actor instanceof Actor) {
@@ -233,8 +235,7 @@ class HorizontalFireball extends Fireball {
 
 class VerticalFireball extends Fireball {
   constructor(position = new Vector(1, 1)) {
-    super(position);
-    this.speed = new Vector(0, 2);
+    super(position, new Vector(0, 2));
   }
 }
 
@@ -252,10 +253,15 @@ class FireRain extends Fireball {
 
 class Coin extends Actor {
   constructor(position = new Vector(0, 0)) {
-    super(new Vector(position.x + 0.2, position.y + 0.1), new Vector(0.6, 0.6));
+    super(position.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
+    this.basePos = this.position;
+
     this.springSpeed = 8;
     this.springDist = 0.07;
-    this.spring = 2 * Math.PI * Math.random();
+
+    let max = 0;
+    let min = 2 * Math.PI;
+    this.spring = Math.random() * (max - min) + min;
   }
 
   get type() {
@@ -266,24 +272,23 @@ class Coin extends Actor {
     this.spring += this.springSpeed * time;
   }
 
-  getSpringVector() {
-    return new Vector(0, Math.sin(this.spring) * this.springDist);
+  getSpringVector(x = 0, y = 0) {
+    return new Vector(x, y + Math.sin(this.spring) * this.springDist);
   }
 
-  getNextPosition(time) {
+  getNextPosition(time = 1) {
     this.updateSpring(time);
     return this.pos.plus(this.getSpringVector());
   }
 
-  act(time) {
+  act(time = 1) {
     this.pos = this.getNextPosition(time);
   }
 }
 
 class Player extends Actor {
   constructor(pos = new Vector(0, 0)) {
-    super(pos, new Vector(0.8, 1.5));
-    this.pos.y = pos.y - 0.5;
+    super(pos.plus(new Vector(0, -0.5)), new Vector(0.8, 1.5));
   }
 
   get type() {
