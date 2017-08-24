@@ -97,10 +97,10 @@ class Level {
       throw new Error("Необходим объект типа Vector");
     }
 
-    let xStart = Math.floor(position.x);
-    let xEnd = Math.ceil(position.x + size.x);
-    let yStart = Math.floor(position.y);
-    let yEnd = Math.ceil(position.y + size.y);
+    const xStart = Math.floor(position.x);
+    const xEnd = Math.ceil(position.x + size.x);
+    const yStart = Math.floor(position.y);
+    const yEnd = Math.ceil(position.y + size.y);
 
     if (xStart < 0 || xEnd > this.width || yStart < 0) {
       return "wall";
