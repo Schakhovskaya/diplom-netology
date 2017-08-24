@@ -173,14 +173,14 @@ class LevelParser {
   }
 
   createActors(plan) {
-    let actors = [];
+    const actors = [];
     for (let i = 0; i < plan.length; i++) {
       for (let j = 0; j < plan[i].length; j++) {
         const char = plan[i][j];
-        let func = this.actorFromSymbol(char);
+        const func = this.actorFromSymbol(char);
 
         if (typeof func === 'function') {
-          let actor = new func(new Vector(j, i));
+          const actor = new func(new Vector(j, i));
 
           if (actor instanceof Actor) {
             actors.push(actor);
@@ -228,8 +228,7 @@ class Fireball extends Actor {
 
 class HorizontalFireball extends Fireball {
   constructor(position = new Vector(0, 0)) {
-    super(position);
-    this.speed = new Vector(2, 0);
+    super(position, new Vector(2, 0));
   }
 }
 
@@ -241,9 +240,8 @@ class VerticalFireball extends Fireball {
 
 class FireRain extends Fireball {
   constructor(position = new Vector(0, 0)) {
-    super(position);
+    super(position, new Vector(0, 3));
     this.startPosition = position;
-    this.speed = new Vector(0, 3);
   }
 
   handleObstacle() {
@@ -252,17 +250,17 @@ class FireRain extends Fireball {
 }
 
 class Coin extends Actor {
- constructor(pos = new Vector(0, 0)) {
- super(pos.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
- this.basePos = this.pos;
+  constructor(pos = new Vector(0, 0)) {
+    super(pos.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
+    this.basePos = this.pos;
 
- this.springSpeed = 8;
- this.springDist = 0.07;
+    this.springSpeed = 8;
+    this.springDist = 0.07;
 
- let max = 0;
- let min = 2 * Math.PI;
- this.spring = Math.random() * (max - min) + min;
- }
+    const max = 0;
+    const min = 2 * Math.PI;
+    this.spring = Math.random() * (max - min) + min;
+  }
 
   get type() {
     return 'coin';
@@ -307,5 +305,5 @@ const parser = new LevelParser(actorDict);
 
 loadLevels()
   .then(JSON.parse)
-  .then(levels => runGame(levels, parser, DOMDisplay)
-    .then(() => alert('Ура, победа! (ваш приз диплом :3)')));
+    .then(levels => runGame(levels, parser, DOMDisplay)
+      .then(() => alert('Ура, победа! (ваш приз диплом :3)')));
